@@ -80,6 +80,10 @@ def _duration_minutes(values: dict[str, Any]) -> float:
 def _rounded(value: float) -> float:
     return round(value, 6)
 
+def _notion_date(value: Any) -> str:
+    normalized = parse_time(str(value)).replace(second=0, microsecond=0)
+    return normalized.isoformat().replace("+00:00", "Z")
+
 def _aggregate_daily(module: str, records: dict[str, Record]) -> dict[str, Record]:
     buckets: dict[str, dict[str, Any]] = {}
     for key, record in records.items():
@@ -243,7 +247,7 @@ def record_properties(record: Record, schema: dict[str, dict]) -> dict[str, dict
         if value is None or target not in schema: continue
         kind = schema[target].get("type")
         if kind == "number" and isinstance(value, (float, int)): props[target] = {"number": value}
-        elif kind == "date": props[target] = {"date": {"start": str(value)}}
+        elif kind == "date": props[target] = {"date": {"start": _notion_date(value)}}
         elif kind == "rich_text": props[target] = rich(value)
     if record.module == "workouts" and schema.get("来源", {}).get("type") == "rich_text": props["来源"] = rich("Apple Health / Hadge")
     return props

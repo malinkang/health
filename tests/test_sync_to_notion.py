@@ -103,11 +103,12 @@ class Tests(unittest.TestCase):
         self.assertNotIn("delete", {name.lower() for name in dir(sync.NotionClient)})
 
     def test_workout_maps_to_keep_schema_and_prefixed_id(self):
-        record = sync.Record("workouts", "u1", tuple(sorted({"Name": "Running", "Start Date": "2026-08-09T08:00:00Z", "Duration": 60.0}.items())))
+        record = sync.Record("workouts", "u1", tuple(sorted({"Name": "Running", "Start Date": "2026-08-09T08:00:42Z", "Duration": 60.0}.items())))
         schema = {"标题": {"type": "title"}, "Id": {"type": "rich_text"}, "开始时间": {"type": "date"}, "运动时长": {"type": "number"}}
         props = sync.record_properties(record, schema)
         self.assertEqual(sync.title_text(props["标题"]), "Running")
         self.assertEqual(sync.title_text(props["Id"]), "apple-health:u1")
+        self.assertEqual(props["开始时间"]["date"]["start"], "2026-08-09T08:00:00Z")
         self.assertEqual(props["运动时长"]["number"], 60.0)
 
     def test_database_discovery_descends_into_keep_pages(self):

@@ -13,7 +13,7 @@ Every database title property stores its stable source identity: workout `UUID`,
 - `心率` and `健康日报`: retain Hadge's existing daily rows.
 - `运动`: retain one record per workout UUID.
 
-Units are included in generated measurement property names. Numeric values use Notion numbers, while workout start/end values use dates.
+Units are included in generated measurement property names. Numeric values use Notion numbers, while workout start/end values use dates normalized to Notion's minute precision.
 
 Before writing, the synchronizer loads all files, merges identical duplicates, and fails on conflicting UUID/date duplicates. It queries every Notion page using cursors, compares normalized timestamps (including Notion's `.000` formatting), and creates or updates only changed pages. It never deletes pages or clears properties absent from the current export. Rate limits and transient failures are retried up to five attempts, honoring `Retry-After`.
 
