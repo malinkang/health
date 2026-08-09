@@ -5,7 +5,7 @@ Status: complete
 ## Scope
 
 - Add a dependency-free Python synchronizer for legacy activity/distances/workouts and the new Hadge body, vitals, nutrition, mobility, heart-rate, sleep, mindfulness, and blood-pressure CSV exports.
-- Map workouts into the Keep workout database; create or reuse one clearly named database per other module under the configured Keep root page.
+- Map workouts into the Keep workout database; create or reuse one clearly named database per other module under the configured Keep root page. Aggregate high-frequency samples by local day so sensor-level data does not create tens of thousands of Notion pages.
 - Enforce deterministic UUID/date identities, identical-duplicate merging, conflicting-duplicate failure, complete Notion pagination, bounded 429/transient retries, and update-only semantics (never delete Notion pages).
 - Normalize Notion date/timestamps before comparison so API millisecond formatting does not cause repeated updates.
 - Add fixture-backed unit tests and a GitHub Actions workflow using only `NOTION_TOKEN` and `NOTION_ROOT_PAGE_ID` secrets.
@@ -25,4 +25,4 @@ Status: complete
 
 ## Result
 
-Implemented the synchronizer, fixture-backed tests, workflow, and mapping documentation. Local unit tests and compile validation pass; live Notion acceptance remains intentionally deferred until real Hadge exports are available.
+Implemented the synchronizer, fixture-backed tests, workflow, and mapping documentation. The first real-data dry run exposed an impractical 56,551-page import, so body, vitals, nutrition, mobility, sleep, mindfulness, and blood-pressure samples are now aggregated by `Asia/Shanghai` day before the live acceptance run.

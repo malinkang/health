@@ -13,9 +13,11 @@ class FakeResponse:
 class Tests(unittest.TestCase):
     def test_new_formats_load_with_uuid_and_date_keys(self):
         records = sync.load_records(Path(__file__).parent / "fixtures")
-        self.assertEqual(records["body"]["b1"].mapping()["Value"], 70.5)
+        self.assertEqual(records["body"]["2026-08-09"].mapping()["Body Mass (kg)"], 70.5)
         self.assertEqual(records["heart-rate"]["2026-08-09"].mapping()["Average"], 76)
-        self.assertEqual(records["blood-pressure"]["bp1"].mapping()["Systolic"], 120)
+        self.assertEqual(records["blood-pressure"]["2026-08-09"].mapping()["Systolic (mmHg)"], 120)
+        self.assertEqual(records["sleep"]["2026-08-09"].mapping()["Asleep (minutes)"], 480)
+        self.assertEqual(records["sleep"]["2026-08-09"].mapping()["Total Sleep (minutes)"], 480)
 
     def test_identical_duplicate_merges_and_conflict_fails(self):
         import tempfile
@@ -27,6 +29,27 @@ class Tests(unittest.TestCase):
             self.assertEqual(len(sync.load_records(root)["body"]), 1)
             (root / "body/b.csv").write_text(header + "x,2026-01-01,2026-01-01,Mass,71,kg,A\n")
             with self.assertRaisesRegex(ValueError, "Conflicting body key x"): sync.load_records(root)
+
+    def test_daily_aggregation_uses_local_end_day_and_module_rules(self):
+        records = {
+            "old": sync.Record("body", "old", tuple(sorted({"Start Date": "2026-08-09T14:00:00Z", "End Date": "2026-08-09T14:00:00Z", "Type": "Body Mass", "Value": 70.0, "Unit": "kg"}.items()))),
+            "new": sync.Record("body", "new", tuple(sorted({"Start Date": "2026-08-09T16:00:00Z", "End Date": "2026-08-09T16:00:00Z", "Type": "Body Mass", "Value": 71.0, "Unit": "kg"}.items()))),
+        }
+        aggregated = sync._aggregate_daily("body", records)
+        self.assertEqual(aggregated["2026-08-09"].mapping()["Body Mass (kg)"], 70.0)
+        self.assertEqual(aggregated["2026-08-10"].mapping()["Body Mass (kg)"], 71.0)
+
+        vitals = {
+            str(i): sync.Record("vitals", str(i), tuple(sorted({"End Date": "2026-08-09T08:00:00Z", "Type": "Resting Heart Rate", "Value": value, "Unit": "bpm"}.items())))
+            for i, value in enumerate((60.0, 70.0))
+        }
+        self.assertEqual(sync._aggregate_daily("vitals", vitals)["2026-08-09"].mapping()["Resting Heart Rate (bpm)"], 65.0)
+
+        water = {
+            str(i): sync.Record("nutrition", str(i), tuple(sorted({"End Date": "2026-08-09T08:00:00Z", "Type": "Water", "Value": value, "Unit": "mL"}.items())))
+            for i, value in enumerate((250.0, 300.0))
+        }
+        self.assertEqual(sync._aggregate_daily("nutrition", water)["2026-08-09"].mapping()["Water (mL)"], 550.0)
 
     def test_millisecond_and_offset_dates_are_idempotent(self):
         page = {"properties": {"Start Date": {"type": "date", "date": {"start": "2026-08-09T08:00:00.000Z", "end": None}}}}

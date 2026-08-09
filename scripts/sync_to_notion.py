@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import argparse, csv, json, math, os, time, urllib.error, urllib.parse, urllib.request
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
+from zoneinfo import ZoneInfo
 
 NOTION_VERSION = "2022-06-28"
 RETRYABLE = {408, 409, 429, 500, 502, 503, 504}
@@ -14,6 +15,8 @@ UUID_MODULES = ("body", "vitals", "nutrition", "mobility", "sleep", "mindfulness
 DATE_MODULES = ("heart-rate",)
 LEGACY_MODULES = ("activity", "distances")
 ALL_MODULES = LEGACY_MODULES + UUID_MODULES + DATE_MODULES + ("workouts",)
+DAILY_AGGREGATE_MODULES = ("body", "vitals", "nutrition", "mobility", "sleep", "mindfulness", "blood-pressure")
+LOCAL_TIMEZONE = ZoneInfo("Asia/Shanghai")
 DATABASE_TITLES = {
     "activity": "健康日报", "distances": "健康日报", "workouts": "运动",
     "body": "身体测量", "vitals": "生命体征", "nutrition": "营养", "mobility": "活动能力",
@@ -61,6 +64,68 @@ def _identity(module: str, row: dict[str, str]) -> str:
         return (row.get("UUID") or "").strip()
     return (row.get("Date") or "").strip()
 
+def _metric_name(kind: Any, unit: Any = None) -> str:
+    name = str(kind or "Value").strip()
+    unit_name = str(unit or "").strip()
+    return f"{name} ({unit_name})" if unit_name else name
+
+def _local_day(value: Any) -> str:
+    return parse_time(str(value)).astimezone(LOCAL_TIMEZONE).date().isoformat()
+
+def _duration_minutes(values: dict[str, Any]) -> float:
+    start = parse_time(str(values["Start Date"]))
+    end = parse_time(str(values["End Date"]))
+    return max(0.0, (end - start).total_seconds() / 60.0)
+
+def _rounded(value: float) -> float:
+    return round(value, 6)
+
+def _aggregate_daily(module: str, records: dict[str, Record]) -> dict[str, Record]:
+    buckets: dict[str, dict[str, Any]] = {}
+    for key, record in records.items():
+        values = record.mapping()
+        timestamp = values.get("End Date") or values.get("Start Date")
+        if not timestamp:
+            raise ValueError(f"Missing timestamp for {module} key {key}")
+        day = _local_day(timestamp)
+        bucket = buckets.setdefault(day, {})
+
+        if module == "body":
+            metric = _metric_name(values.get("Type"), values.get("Unit"))
+            marker = (parse_time(str(timestamp)), key)
+            current = bucket.get(metric)
+            if current is None or marker > current[:2]:
+                bucket[metric] = (*marker, values.get("Value"))
+        elif module in {"vitals", "mobility"}:
+            metric = _metric_name(values.get("Type"), values.get("Unit"))
+            bucket.setdefault(metric, []).append(float(values["Value"]))
+        elif module == "nutrition":
+            metric = _metric_name(values.get("Type"), values.get("Unit"))
+            bucket[metric] = bucket.get(metric, 0.0) + float(values["Value"])
+        elif module == "sleep":
+            metric = f"{str(values.get('Type') or 'Sleep').strip()} (minutes)"
+            duration = _duration_minutes(values)
+            bucket[metric] = bucket.get(metric, 0.0) + duration
+            if str(values.get("Type") or "").strip() in {"Asleep", "Asleep Unspecified", "Core", "Deep", "REM"}:
+                bucket["Total Sleep (minutes)"] = bucket.get("Total Sleep (minutes)", 0.0) + duration
+        elif module == "mindfulness":
+            bucket["Mindful Minutes"] = bucket.get("Mindful Minutes", 0.0) + _duration_minutes(values)
+        elif module == "blood-pressure":
+            unit = values.get("Unit")
+            bucket.setdefault(_metric_name("Systolic", unit), []).append(float(values["Systolic"]))
+            bucket.setdefault(_metric_name("Diastolic", unit), []).append(float(values["Diastolic"]))
+
+    result: dict[str, Record] = {}
+    for day, bucket in sorted(buckets.items()):
+        values: dict[str, Any] = {}
+        for metric, value in bucket.items():
+            if module == "body": value = value[2]
+            elif module in {"vitals", "mobility", "blood-pressure"}: value = sum(value) / len(value)
+            if isinstance(value, float): value = _rounded(value)
+            values[metric] = value
+        result[day] = Record(module, day, tuple(sorted(values.items())))
+    return result
+
 def load_records(root: Path) -> dict[str, dict[str, Record]]:
     result: dict[str, dict[str, Record]] = {m: {} for m in ALL_MODULES}
     for module in ALL_MODULES:
@@ -81,16 +146,19 @@ def load_records(root: Path) -> dict[str, dict[str, Record]]:
                 rec = Record(target_module, key, tuple(sorted({**old_values, **values}.items())))
             target[key] = rec
     result.pop("distances", None)
+    for module in DAILY_AGGREGATE_MODULES:
+        result[module] = _aggregate_daily(module, result[module])
     return result
 
 class NotionClient:
-    def __init__(self, token: str, sleep: Callable[[float], None] = time.sleep, opener=urllib.request.urlopen):
-        self.token, self.sleep, self.opener = token, sleep, opener
+    def __init__(self, token: str, sleep: Callable[[float], None] = time.sleep, opener=urllib.request.urlopen, min_interval: float = 0.0):
+        self.token, self.sleep, self.opener, self.min_interval = token, sleep, opener, min_interval
     def request(self, method: str, path: str, payload: dict | None = None) -> dict:
         data = json.dumps(payload).encode() if payload is not None else None
         req = urllib.request.Request("https://api.notion.com/v1" + path, data=data, method=method,
             headers={"Authorization": "Bearer " + self.token, "Notion-Version": NOTION_VERSION, "Content-Type": "application/json"})
         for attempt in range(5):
+            if self.min_interval: self.sleep(self.min_interval)
             try:
                 with self.opener(req) as response: return json.loads(response.read() or b"{}")
             except urllib.error.HTTPError as exc:
@@ -228,6 +296,7 @@ def sync(root: Path, client: NotionClient, notion_root: str, dry: bool = False) 
     found = find_databases(client, notion_root); counts = {"created": 0, "updated": 0, "skipped": 0}
     for module, records in modules.items():
         if not records: continue
+        print(f"Syncing {module}: {len(records)} normalized records", flush=True)
         database_id, schema = ensure_database(client, notion_root, module, records, found, dry)
         pages = client.query(database_id) if database_id else []
         by_key = {}
@@ -247,13 +316,14 @@ def sync(root: Path, client: NotionClient, notion_root: str, dry: bool = False) 
                 counts["updated"] += 1
                 if not dry: client.request("PATCH", f"/pages/{old['id']}", {"properties": props})
             else: counts["skipped"] += 1
+        print(f"Completed {module}: {json.dumps(counts)}", flush=True)
     return counts
 
 def main() -> int:
     parser = argparse.ArgumentParser(); parser.add_argument("--repo", type=Path, default=Path(__file__).parents[1]); parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(); token = os.environ.get("NOTION_TOKEN"); root = os.environ.get("NOTION_ROOT_PAGE_ID")
     if not token or not root: parser.error("NOTION_TOKEN and NOTION_ROOT_PAGE_ID are required")
-    print(json.dumps(sync(args.repo, NotionClient(token), root, args.dry_run), ensure_ascii=False))
+    print(json.dumps(sync(args.repo, NotionClient(token, min_interval=0.34), root, args.dry_run), ensure_ascii=False))
     return 0
 
 if __name__ == "__main__": raise SystemExit(main())
