@@ -51,3 +51,19 @@ The folder `workouts` contains the data for all your workouts. One csv file per 
 | Swim Strokes | Stroke count for swimming workouts |
 | Total Energy | In kcal |
 
+### Additional Health Data
+
+Hadge can export eight optional HealthKit modules. Each module is stored in its own folder with one CSV file per year. Modules can be enabled or disabled in **Settings → Sync**. Disabling a module stops future uploads and does not delete existing files.
+
+| Folder | Data | Columns |
+| --- | --- | --- |
+| `body` | Weight, BMI, body fat, lean mass, height, waist circumference | UUID, Start Date, End Date, Type, Value, Unit, Source |
+| `heart-rate` | Daily minimum, maximum, and average heart rate | Date, Minimum, Maximum, Average, Unit |
+| `vitals` | Resting/walking heart rate, HRV, respiratory rate, blood oxygen, VO2 Max, temperature, blood glucose | UUID, Start Date, End Date, Type, Value, Unit, Source |
+| `sleep` | In-bed, awake, core, deep, REM, and unspecified sleep samples | UUID, Start Date, End Date, Type, Value, Source |
+| `blood-pressure` | Correlated systolic and diastolic readings | UUID, Start Date, End Date, Systolic, Diastolic, Unit, Source |
+| `nutrition` | Water, calories, protein, carbohydrates, fat, fiber, sugar, sodium, caffeine | UUID, Start Date, End Date, Type, Value, Unit, Source |
+| `mobility` | Walking speed, step length, asymmetry, double support, stair speed, walking steadiness | UUID, Start Date, End Date, Type, Value, Unit, Source |
+| `mindfulness` | Mindful sessions | UUID, Start Date, End Date, Type, Value, Source |
+
+Only samples available on the device and authorized by the user are exported. Hadge does not export clinical records, reproductive health, medications, symptoms, or workout GPS routes as part of these modules.
