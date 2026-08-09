@@ -80,4 +80,4 @@ Local fixture verification:
 python -m unittest discover -s tests -v
 ```
 
-The manual workflow defaults to dry-run. This initial implementation has not read repository secrets, written to a real Notion workspace, or been pushed.
+The manual workflow defaults to dry-run. Enable automatic triggers only after a real-data dry run and live Notion acceptance both succeed.

@@ -1,21 +1,5 @@
 name: Sync Hadge health data to Notion Keep
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'activity/**'
-      - 'distances/**'
-      - 'workouts/**'
-      - 'body/**'
-      - 'vitals/**'
-      - 'nutrition/**'
-      - 'mobility/**'
-      - 'heart-rate/**'
-      - 'sleep/**'
-      - 'mindfulness/**'
-      - 'blood-pressure/**'
-      - 'scripts/sync_to_notion.py'
-      - '.github/workflows/sync-notion.yml'
   workflow_dispatch:
     inputs:
       dry_run:
