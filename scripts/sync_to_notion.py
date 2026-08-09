@@ -206,14 +206,18 @@ def expected_value(spec: dict) -> Any:
     if "date" in spec: return spec["date"]
     return None
 
-def needs_update(page: dict, expected: dict[str, dict]) -> bool:
+def mismatched_properties(page: dict, expected: dict[str, dict]) -> list[str]:
     current = page.get("properties", {})
+    mismatches = []
     for name, spec in expected.items():
         a, b = actual_value(current.get(name, {})), expected_value(spec)
         if isinstance(a, dict) and isinstance(b, dict):
-            if not iso_equal(a.get("start"), b.get("start")) or not iso_equal(a.get("end"), b.get("end")): return True
-        elif not same(a, b): return True
-    return False
+            if not iso_equal(a.get("start"), b.get("start")) or not iso_equal(a.get("end"), b.get("end")): mismatches.append(name)
+        elif not same(a, b): mismatches.append(name)
+    return mismatches
+
+def needs_update(page: dict, expected: dict[str, dict]) -> bool:
+    return bool(mismatched_properties(page, expected))
 
 def rich(value: Any) -> dict: return {"rich_text": [{"text": {"content": str(value)}}]}
 def title(value: Any) -> dict: return {"title": [{"text": {"content": str(value)}}]}
@@ -297,6 +301,7 @@ def sync(root: Path, client: NotionClient, notion_root: str, dry: bool = False) 
     for module, records in modules.items():
         if not records: continue
         print(f"Syncing {module}: {len(records)} normalized records", flush=True)
+        mismatch_counts: dict[str, int] = {}
         database_id, schema = ensure_database(client, notion_root, module, records, found, dry)
         pages = client.query(database_id) if database_id else []
         by_key = {}
@@ -312,10 +317,12 @@ def sync(root: Path, client: NotionClient, notion_root: str, dry: bool = False) 
             if old is None:
                 counts["created"] += 1
                 if not dry: client.request("POST", "/pages", {"parent": {"database_id": database_id}, "properties": props})
-            elif needs_update(old, props):
+            elif mismatches := mismatched_properties(old, props):
                 counts["updated"] += 1
+                for name in mismatches: mismatch_counts[name] = mismatch_counts.get(name, 0) + 1
                 if not dry: client.request("PATCH", f"/pages/{old['id']}", {"properties": props})
             else: counts["skipped"] += 1
+        if mismatch_counts: print(f"Mismatched {module}: {json.dumps(mismatch_counts, ensure_ascii=False, sort_keys=True)}", flush=True)
         print(f"Completed {module}: {json.dumps(counts)}", flush=True)
     return counts
 

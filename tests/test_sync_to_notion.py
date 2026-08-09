@@ -55,6 +55,12 @@ class Tests(unittest.TestCase):
         page = {"properties": {"Start Date": {"type": "date", "date": {"start": "2026-08-09T08:00:00.000Z", "end": None}}}}
         expected = {"Start Date": {"date": {"start": "2026-08-09T16:00:00+08:00"}}}
         self.assertFalse(sync.needs_update(page, expected))
+        self.assertEqual(sync.mismatched_properties(page, expected), [])
+
+    def test_mismatch_diagnostics_return_names_not_values(self):
+        page = {"properties": {"Distance": {"type": "number", "number": 1}}}
+        expected = {"Distance": {"number": 2}}
+        self.assertEqual(sync.mismatched_properties(page, expected), ["Distance"])
 
     def test_pagination_uses_cursor(self):
         calls = []
