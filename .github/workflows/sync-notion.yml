@@ -1,0 +1,50 @@
+name: Sync Hadge health data to Notion Keep
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'activity/**'
+      - 'distances/**'
+      - 'workouts/**'
+      - 'body/**'
+      - 'vitals/**'
+      - 'nutrition/**'
+      - 'mobility/**'
+      - 'heart-rate/**'
+      - 'sleep/**'
+      - 'mindfulness/**'
+      - 'blood-pressure/**'
+      - 'scripts/sync_to_notion.py'
+      - '.github/workflows/sync-notion.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Compare only; do not write Notion
+        type: boolean
+        default: true
+permissions:
+  contents: read
+concurrency:
+  group: hadge-notion-keep
+  cancel-in-progress: false
+jobs:
+  test-and-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Sync
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_ROOT_PAGE_ID: ${{ secrets.NOTION_ROOT_PAGE_ID }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          test -n "$NOTION_TOKEN"
+          test -n "$NOTION_ROOT_PAGE_ID"
+          args=()
+          if [[ "$DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
+          python scripts/sync_to_notion.py "${args[@]}"

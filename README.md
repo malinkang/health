@@ -67,3 +67,17 @@ Hadge can export eight optional HealthKit modules. Each module is stored in its 
 | `mindfulness` | Mindful sessions | UUID, Start Date, End Date, Type, Value, Source |
 
 Only samples available on the device and authorized by the user are exported. Hadge does not export clinical records, reproductive health, medications, symptoms, or workout GPS routes as part of these modules.
+
+## Notion Keep synchronization
+
+[`scripts/sync_to_notion.py`](scripts/sync_to_notion.py) synchronizes Hadge exports to child databases under a Notion Keep root. The GitHub workflow reads only the existing `NOTION_TOKEN` and `NOTION_ROOT_PAGE_ID` secrets; never put their values in this repository.
+
+Supported directories are `activity`, `distances`, `workouts`, `body`, `vitals`, `nutrition`, `mobility`, `heart-rate`, `sleep`, `mindfulness`, and `blood-pressure`. See [`docs/notion-mapping.md`](docs/notion-mapping.md) for database/property mappings, idempotency guarantees, and the required real-data acceptance gate.
+
+Local fixture verification:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+The manual workflow defaults to dry-run. This initial implementation has not read repository secrets, written to a real Notion workspace, or been pushed.
