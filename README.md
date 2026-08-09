@@ -80,4 +80,4 @@ Local fixture verification:
 python -m unittest discover -s tests -v
 ```
 
-The manual workflow defaults to dry-run. Enable automatic triggers only after a real-data dry run and live Notion acceptance both succeed.
+The manual workflow defaults to dry-run. After successful live acceptance, the workflow now performs a real incremental sync every day at 10:15 Asia/Shanghai (02:15 UTC). GitHub scheduled workflows may start a few minutes late during busy periods.

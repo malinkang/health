@@ -20,3 +20,5 @@ Before writing, the synchronizer loads all files, merges identical duplicates, a
 ## Real-data acceptance gate
 
 Run unit tests, run the workflow manually with `dry_run=true`, inspect duplicate/conflict output and proposed counts, and then run a live write. A second live run must report only skipped records before scheduled synchronization is enabled.
+
+Live acceptance completed on 2026-08-10: all 6,307 normalized records were present, and the verification run reported zero creates, zero updates, and 6,307 skips. Scheduled synchronization runs daily at 10:15 Asia/Shanghai.
