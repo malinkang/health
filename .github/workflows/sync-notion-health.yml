@@ -1,7 +1,7 @@
-name: Sync Hadge health data to Notion Keep
+name: Sync other health data to Notion Keep
 on:
   schedule:
-    - cron: '15 2 * * *'
+    - cron: '45 2 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: hadge-notion-keep
+  group: hadge-notion-health
   cancel-in-progress: false
 jobs:
   test-and-sync:
@@ -23,7 +23,7 @@ jobs:
         with: {python-version: '3.12'}
       - name: Unit tests
         run: python -m unittest discover -s tests -v
-      - name: Sync
+      - name: Sync other health data
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_ROOT_PAGE_ID: ${{ secrets.NOTION_ROOT_PAGE_ID }}
@@ -31,6 +31,6 @@ jobs:
         run: |
           test -n "$NOTION_TOKEN"
           test -n "$NOTION_ROOT_PAGE_ID"
-          args=()
+          args=(--modules activity,body,vitals,nutrition,mobility,mindfulness,blood-pressure,heart-rate)
           if [[ "$DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
           python scripts/sync_to_notion.py "${args[@]}"

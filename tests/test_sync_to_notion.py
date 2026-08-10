@@ -16,8 +16,91 @@ class Tests(unittest.TestCase):
         self.assertEqual(records["body"]["2026-08-09"].mapping()["Body Mass (kg)"], 70.5)
         self.assertEqual(records["heart-rate"]["2026-08-09"].mapping()["Average"], 76)
         self.assertEqual(records["blood-pressure"]["2026-08-09"].mapping()["Systolic (mmHg)"], 120)
-        self.assertEqual(records["sleep"]["2026-08-09"].mapping()["Asleep (minutes)"], 480)
-        self.assertEqual(records["sleep"]["2026-08-09"].mapping()["Total Sleep (minutes)"], 480)
+        self.assertEqual(len(records["sleep"]), 1)
+        sleep = next(iter(records["sleep"].values())).mapping()
+        self.assertEqual(sleep["睡眠时长（分钟）"], 410)
+        self.assertEqual(sleep["卧床时长（分钟）"], 480)
+        self.assertEqual(sleep["清醒次数"], 1)
+        self.assertEqual(sleep["Apple Health Key"], "apple-health:" + sleep["Sleep Key"])
+        self.assertNotIn("Core (minutes)", sleep)
+        self.assertNotIn("REM (minutes)", sleep)
+        self.assertNotIn("In Bed (minutes)", sleep)
+        self.assertEqual(len(records["sleep-stages"]), 5)
+        self.assertEqual(records["sleep-stages"]["core1"].mapping()["Sleep Day"], "2026-08-09")
+        self.assertEqual(records["sleep-stages"]["core1"].mapping()["Stage"], "浅睡")
+        self.assertNotIn("unspecified1", records["sleep-stages"])
+
+    def test_sleep_sessions_split_same_day_and_preserve_uncovered_fallback(self):
+        def row(key, start, end, kind):
+            return sync.Record("sleep", key, tuple(sorted({
+                "Start Date": start, "End Date": end, "Type": kind, "Value": 1,
+            }.items())))
+        records = {
+            "core": row("core", "2026-01-01T00:00:00Z", "2026-01-01T01:00:00Z", "Core"),
+            "awake": row("awake", "2026-01-01T01:00:00Z", "2026-01-01T01:10:00Z", "Awake"),
+            "fallback": row("fallback", "2026-01-01T00:00:00Z", "2026-01-01T04:00:00Z", "Asleep Unspecified"),
+            "nap": row("nap", "2026-01-01T08:00:00Z", "2026-01-01T09:00:00Z", "Core"),
+            # A broad bed interval must not bridge the four-hour gap.
+            "bed": row("bed", "2026-01-01T00:00:00Z", "2026-01-01T10:00:00Z", "In Bed"),
+        }
+        sleep_records, stages = sync._sleep_records(records)
+        self.assertEqual(len(sleep_records), 2)
+        self.assertEqual({record.mapping()["Sleep Day"] for record in sleep_records.values()}, {"2026-01-01"})
+        durations = sorted(record.mapping()["睡眠时长（分钟）"] for record in sleep_records.values())
+        self.assertEqual(durations, [60.0, 230.0])
+        beds = sorted(record.mapping()["卧床时长（分钟）"] for record in sleep_records.values())
+        self.assertEqual(beds, [120.0, 240.0])
+        self.assertEqual(len(stages), 3)
+
+    def test_duplicate_stage_intervals_use_minute_stage_identity(self):
+        def row(key, start, end):
+            return sync.Record("sleep", key, tuple(sorted({
+                "Start Date": start, "End Date": end, "Type": "Core", "Value": 1,
+            }.items())))
+        sleep_records, stages = sync._sleep_records({
+            "z": row("z", "2026-01-01T00:00:40Z", "2026-01-01T00:30:20Z"),
+            "a": row("a", "2026-01-01T00:00:10Z", "2026-01-01T00:30:50Z"),
+        })
+        self.assertEqual(len(sleep_records), 1)
+        self.assertEqual(len(stages), 1)
+        self.assertEqual(next(iter(stages)), "a")
+
+    def test_sleep_range_identity_reuses_legacy_native_page(self):
+        records = sync.load_records(Path(__file__).parent / "fixtures")
+        record = next(iter(records["sleep"].values()))
+        values = record.mapping()
+        page = {"id": "legacy-sleep", "properties": {
+            "名称": {"type": "title", "title": [{"plain_text": values["Sleep Day"]}]},
+            "Apple Health Key": {"type": "rich_text", "rich_text": []},
+            "睡眠时间": {"type": "date", "date": {"start": values["Sleep Start"], "end": values["Sleep End"]}},
+            "卧床时间": {"type": "date", "date": {"start": values["Bed Start"], "end": values["Bed End"]}},
+        }}
+        schema = sync.schema_for(records["sleep"])
+        self.assertEqual(sync._page_sleep_key(page, schema), record.key)
+
+    def test_sleep_stage_relation_uses_session_key_not_title(self):
+        records = sync.load_records(Path(__file__).parent / "fixtures")
+        sleep_page_schema = sync.schema_for(records["sleep"])
+        sleep_pages = []
+        for index, record in enumerate(records["sleep"].values()):
+            values = record.mapping()
+            sleep_pages.append({"id": f"sleep-{index}", "properties": {
+                "名称": {"type": "title", "title": [{"plain_text": values["Sleep Day"]}]},
+                "Apple Health Key": {"type": "rich_text", "rich_text": [{"plain_text": values["Apple Health Key"]}]},
+                "睡眠时间": {"type": "date", "date": {"start": values["Sleep Start"], "end": values["Sleep End"]}},
+                "卧床时间": {"type": "date", "date": {"start": values["Bed Start"], "end": values["Bed End"]}},
+            }})
+        keyed = {sync._page_sleep_key(page, sleep_page_schema): page["id"] for page in sleep_pages}
+        stage = next(iter(records["sleep-stages"].values())).mapping()
+        self.assertEqual(keyed[stage["Sleep Key"]], "sleep-0")
+
+    def test_sleep_schema_has_only_native_duration_fields(self):
+        records = sync.load_records(Path(__file__).parent / "fixtures")
+        schema = sync.schema_for(records["sleep"])
+        self.assertEqual(schema["Apple Health Key"], {"rich_text": {}})
+        self.assertEqual(set(schema) & {"Asleep (minutes)", "Core (minutes)", "Deep (minutes)", "REM (minutes)", "In Bed (minutes)"}, set())
+        options = schema_for_stage = sync.schema_for(records["sleep-stages"])["睡眠阶段"]["select"]["options"]
+        self.assertEqual({option["name"] for option in options}, {"清醒", "浅睡", "深睡", "快速眼动睡眠"})
 
     def test_identical_duplicate_merges_and_conflict_fails(self):
         import tempfile
@@ -61,6 +144,111 @@ class Tests(unittest.TestCase):
         page = {"properties": {"Distance": {"type": "number", "number": 1}}}
         expected = {"Distance": {"number": 2}}
         self.assertEqual(sync.mismatched_properties(page, expected), ["Distance"])
+
+    def test_select_and_relation_values_are_idempotent(self):
+        page = {"properties": {
+            "Stage": {"type": "select", "select": {"name": "深睡"}},
+            "Sleep": {"type": "relation", "relation": [{"id": "b"}, {"id": "a"}]},
+        }}
+        expected = {"Stage": {"select": {"name": "深睡"}}, "Sleep": {"relation": [{"id": "a"}, {"id": "b"}]}}
+        self.assertEqual(sync.mismatched_properties(page, expected), [])
+
+    def test_sleep_maps_to_keep_native_properties(self):
+        record = sync.Record("sleep", "sleep-key", tuple(sorted({
+            "Apple Health Key": "apple-health:sleep-key",
+            "Sleep Day": "2026-08-09",
+            "Sleep Start": "2026-08-08T15:30:42Z", "Sleep End": "2026-08-08T22:30:11Z",
+            "Bed Start": "2026-08-08T15:00:00Z", "Bed End": "2026-08-08T23:00:00Z",
+            "睡眠时长（分钟）": 410.0, "卧床时长（分钟）": 480.0, "清醒次数": 1,
+        }.items())))
+        schema = {
+            "名称": {"type": "title"}, "Apple Health Key": {"type": "rich_text"}, "日期": {"type": "date"}, "睡眠时间": {"type": "date"},
+            "卧床时间": {"type": "date"}, "睡眠时长（分钟）": {"type": "number"},
+            "卧床时长（分钟）": {"type": "number"}, "清醒次数": {"type": "number"}, "日": {"type": "relation"},
+        }
+        props = sync.record_properties(record, schema, {"2026-08-09": "day-page"})
+        self.assertEqual(sync.title_text(props["名称"]), "2026-08-09")
+        self.assertEqual(sync.title_text(props["Apple Health Key"]), "apple-health:sleep-key")
+        self.assertEqual(props["日期"]["date"]["start"], "2026-08-09")
+        self.assertEqual(props["睡眠时间"]["date"], {"start": "2026-08-08T15:30:00Z", "end": "2026-08-08T22:30:00Z"})
+        self.assertEqual(props["日"]["relation"], [{"id": "day-page"}])
+
+    def test_sleep_stage_maps_to_keep_schema_and_parent(self):
+        record = sync.Record("sleep-stages", "u1", tuple(sorted({
+            "Name": "2026-08-09 深睡 00:40-02:00", "Sleep Day": "2026-08-09", "Stage": "深睡",
+            "Start Date": "2026-08-08T16:40:20Z", "End Date": "2026-08-08T18:00:30Z", "Duration Minutes": 80.166667,
+        }.items())))
+        schema = {
+            "名称": {"type": "title"}, "Apple Health Id": {"type": "rich_text"}, "日期": {"type": "date"},
+            "睡眠阶段": {"type": "select"}, "阶段时间": {"type": "date"}, "阶段时长（分钟）": {"type": "number"},
+            "睡眠记录": {"type": "relation"},
+        }
+        props = sync.sleep_stage_properties(record, schema, "sleep-page", "睡眠记录")
+        self.assertEqual(sync.title_text(props["Apple Health Id"]), "apple-health:u1")
+        self.assertEqual(props["睡眠阶段"]["select"]["name"], "深睡")
+        self.assertEqual(props["阶段时间"]["date"]["start"], "2026-08-08T16:40:00Z")
+        self.assertEqual(props["睡眠记录"]["relation"], [{"id": "sleep-page"}])
+
+    def test_legacy_stage_page_matches_interval_and_normalizes_rem(self):
+        record = sync.Record("sleep-stages", "new-uuid", tuple(sorted({
+            "Name": "2026-08-09 快速眼动睡眠 00:40-02:00", "Sleep Day": "2026-08-09",
+            "Sleep Key": "sleep-key", "Stage": "快速眼动睡眠",
+            "Start Date": "2026-08-08T16:40:20Z", "End Date": "2026-08-08T18:00:30Z",
+            "Duration Minutes": 80.166667,
+        }.items())))
+        schema = {
+            "名称": {"type": "title"}, "Apple Health Id": {"type": "rich_text"}, "日期": {"type": "date"},
+            "睡眠阶段": {"type": "select", "select": {"options": [{"name": "REM"}]}},
+            "阶段时间": {"type": "date"}, "阶段时长（分钟）": {"type": "number"},
+            "睡眠记录": {"type": "relation"},
+        }
+        legacy_page = {"id": "legacy-stage", "properties": {
+            "名称": {"type": "title", "title": [{"plain_text": "old stage"}]},
+            "Apple Health Id": {"type": "rich_text", "rich_text": []},
+            "睡眠阶段": {"type": "select", "select": {"name": "REM"}},
+            "阶段时间": {"type": "date", "date": {"start": "2026-08-08T16:40:00Z", "end": "2026-08-08T18:00:00Z"}},
+        }}
+        self.assertEqual(sync._page_sleep_stage_key(legacy_page, schema), sync._sleep_stage_key("快速眼动睡眠", record.mapping()["Start Date"], record.mapping()["End Date"]))
+        props = sync.sleep_stage_properties(record, schema, "sleep-page", "睡眠记录")
+        self.assertEqual(props["睡眠阶段"]["select"]["name"], "REM")
+        self.assertEqual(sync.title_text(props["Apple Health Id"]), "apple-health:new-uuid")
+
+    def test_stage_schema_adds_four_standard_options_to_legacy_select(self):
+        calls = []
+        existing = {
+            "名称": {"type": "title"}, "Apple Health Id": {"type": "rich_text"}, "日期": {"type": "date"},
+            "睡眠阶段": {"type": "select", "select": {"options": [{"name": "REM"}]}},
+            "阶段时间": {"type": "date"}, "阶段时长（分钟）": {"type": "number"},
+            "睡眠记录": {"type": "relation", "relation": {"database_id": "sleep-db"}},
+        }
+        class Client:
+            def request(self, method, path, payload=None):
+                calls.append((method, path, payload))
+                if method == "GET": return {"properties": existing}
+                return {"properties": existing}
+        record = sync.Record("sleep-stages", "u1", (("Stage", "快速眼动睡眠"),))
+        _, schema, _ = sync.ensure_sleep_stage_database(Client(), "root", {"u1": record}, {"睡眠分段": "stage-db"}, "sleep-db", False)
+        option_patch = next(payload for method, path, payload in calls if method == "PATCH" and "睡眠阶段" in payload.get("properties", {}))
+        names = {option["name"] for option in option_patch["properties"]["睡眠阶段"]["select"]["options"]}
+        self.assertTrue({"清醒", "浅睡", "深睡", "快速眼动睡眠"} <= names)
+        self.assertIn("REM", names)
+        self.assertTrue({"清醒", "浅睡", "深睡", "快速眼动睡眠", "REM"} <= {
+            option["name"] for option in schema["睡眠阶段"]["select"]["options"]
+        })
+
+    def test_only_legacy_empty_sleep_pages_are_repair_candidates(self):
+        stale = {"properties": {
+            "Core (minutes)": {"type": "number", "number": 20},
+            "睡眠时长（分钟）": {"type": "number", "number": None},
+        }}
+        migrated = {"properties": {
+            "Core (minutes)": {"type": "number", "number": 20},
+            "睡眠时长（分钟）": {"type": "number", "number": 20},
+        }}
+        unrelated = {"properties": {"睡眠时长（分钟）": {"type": "number", "number": None}}}
+        self.assertTrue(sync.is_stale_legacy_sleep_page(stale))
+        self.assertFalse(sync.is_stale_legacy_sleep_page(migrated))
+        self.assertFalse(sync.is_stale_legacy_sleep_page(unrelated))
 
     def test_pagination_uses_cursor(self):
         calls = []

@@ -70,7 +70,7 @@ Only samples available on the device and authorized by the user are exported. Ha
 
 ## Notion Keep synchronization
 
-[`scripts/sync_to_notion.py`](scripts/sync_to_notion.py) synchronizes Hadge exports to child databases under a Notion Keep root. The GitHub workflow reads only the existing `NOTION_TOKEN` and `NOTION_ROOT_PAGE_ID` secrets; never put their values in this repository.
+[`scripts/sync_to_notion.py`](scripts/sync_to_notion.py) synchronizes Hadge exports to child databases under a Notion Keep root. The GitHub workflows read only the existing `NOTION_TOKEN` and `NOTION_ROOT_PAGE_ID` secrets; never put their values in this repository.
 
 Supported directories are `activity`, `distances`, `workouts`, `body`, `vitals`, `nutrition`, `mobility`, `heart-rate`, `sleep`, `mindfulness`, and `blood-pressure`. See [`docs/notion-mapping.md`](docs/notion-mapping.md) for database/property mappings, idempotency guarantees, and the required real-data acceptance gate.
 
@@ -80,4 +80,10 @@ Local fixture verification:
 python -m unittest discover -s tests -v
 ```
 
-The manual workflow defaults to dry-run. After successful live acceptance, the workflow now performs a real incremental sync every day at 10:15 Asia/Shanghai (02:15 UTC). GitHub scheduled workflows may start a few minutes late during busy periods.
+The synchronization is split into three independent workflows. Manual runs default to dry-run; schedules perform real incremental synchronization:
+
+- Sleep and sleep stages: 10:15 Asia/Shanghai (02:15 UTC).
+- Workouts: 10:30 Asia/Shanghai (02:30 UTC).
+- Other health data: 10:45 Asia/Shanghai (02:45 UTC).
+
+GitHub scheduled workflows may start a few minutes late during busy periods.

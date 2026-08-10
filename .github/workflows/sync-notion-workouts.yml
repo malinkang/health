@@ -1,0 +1,36 @@
+name: Sync workout data to Notion Keep
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Compare only; do not write Notion
+        type: boolean
+        default: true
+permissions:
+  contents: read
+concurrency:
+  group: hadge-notion-workouts
+  cancel-in-progress: false
+jobs:
+  test-and-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Sync workouts
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_ROOT_PAGE_ID: ${{ secrets.NOTION_ROOT_PAGE_ID }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          test -n "$NOTION_TOKEN"
+          test -n "$NOTION_ROOT_PAGE_ID"
+          args=(--modules workouts)
+          if [[ "$DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
+          python scripts/sync_to_notion.py "${args[@]}"
