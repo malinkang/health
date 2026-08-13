@@ -12546,8 +12546,8 @@ acb816b9-a7a3-4322-a2be-ed23266fde14,2026-08-11T07:05:08Z,2026-08-11T07:06:08Z,H
 43d43410-df6d-4abb-a9cc-b6d510702bc8,2026-08-11T15:00:01Z,2026-08-11T22:33:55Z,Sleeping Wrist Temperature,35.407291,degC,马林康的Apple Watch
 3cc665e2-345c-4cf4-b516-4b6441c6e518,2026-08-11T15:17:21Z,2026-08-11T15:18:20Z,Heart Rate Variability SDNN,42.918066,ms,马林康的Apple Watch
 d2254ab9-d7c5-4a1f-b750-bfe5bad5c676,2026-08-11T15:41:04Z,2026-08-11T15:41:04Z,Oxygen Saturation,96,%,马林康的Apple Watch
-0beee34d-a92c-4c44-8456-b313f30b7a88,2026-08-11T16:04:15Z,2026-08-12T11:02:14Z,Resting Heart Rate,59,count/min,马林康的Apple Watch
-36beb5cd-fabe-4d1f-9e37-7a26485b952e,2026-08-11T16:04:15Z,2026-08-12T08:12:03Z,Walking Heart Rate Average,88,count/min,马林康的Apple Watch
+643a8ba4-1e23-415f-8437-a144e00bf645,2026-08-11T16:04:15Z,2026-08-12T14:46:44Z,Walking Heart Rate Average,88,count/min,马林康的Apple Watch
+e9f50601-56a5-486e-84e7-0767c66d446e,2026-08-11T16:04:15Z,2026-08-12T14:46:44Z,Resting Heart Rate,59,count/min,马林康的Apple Watch
 4e10eddf-0794-4768-8a04-ebc81f29edc2,2026-08-11T18:26:42Z,2026-08-11T18:27:41Z,Heart Rate Variability SDNN,38.222082,ms,马林康的Apple Watch
 05910358-e206-4e19-be19-f79e85933e05,2026-08-11T18:26:51Z,2026-08-11T18:26:51Z,Oxygen Saturation,94,%,马林康的Apple Watch
 0abcf019-81f0-47b2-8a91-24113558d5f0,2026-08-11T18:28:08Z,2026-08-11T18:28:08Z,Respiratory Rate,19.5,count/min,马林康的Apple Watch
@@ -12610,3 +12610,63 @@ ed3a8c53-52d9-472f-8ff7-3e2816e04f50,2026-08-12T05:32:04Z,2026-08-12T05:33:01Z,H
 6f99db6c-fd9f-400f-9beb-d4813185405f,2026-08-12T12:06:33Z,2026-08-12T12:07:26Z,Heart Rate Variability SDNN,19.995082,ms,马林康的Apple Watch
 eafc23b5-7e3a-4011-b52b-0ff64688218b,2026-08-12T12:51:28Z,2026-08-12T12:52:27Z,Heart Rate Variability SDNN,19.588503,ms,马林康的Apple Watch
 43a7e6ab-bc7a-4e94-ab58-bcf72bf82407,2026-08-12T14:42:39Z,2026-08-12T14:42:39Z,Oxygen Saturation,94,%,马林康的Apple Watch
+5eb06d4a-fd76-4acb-95af-82790de99232,2026-08-12T16:59:17Z,2026-08-12T22:31:47Z,Sleeping Wrist Temperature,34.493225,degC,马林康的Apple Watch
+0e502e37-4ad3-4138-b217-af01fd33d707,2026-08-12T17:01:09Z,2026-08-13T10:40:26Z,Walking Heart Rate Average,87,count/min,马林康的Apple Watch
+65e113ce-4356-4617-8a00-f4fddec326cc,2026-08-12T17:01:09Z,2026-08-13T10:40:26Z,Resting Heart Rate,54,count/min,马林康的Apple Watch
+4ed97545-3b44-40e7-91c7-03cf5750799b,2026-08-12T17:01:53Z,2026-08-12T17:02:53Z,Heart Rate Variability SDNN,57.898285,ms,马林康的Apple Watch
+a8c910e2-8e3a-414c-98bc-33436e8c675b,2026-08-12T17:02:05Z,2026-08-12T17:02:05Z,Oxygen Saturation,96,%,马林康的Apple Watch
+b4879224-b01d-455d-a721-7c0206fdf5f9,2026-08-12T19:00:07Z,2026-08-12T19:01:06Z,Heart Rate Variability SDNN,36.377027,ms,马林康的Apple Watch
+6533d244-69ee-4fed-9983-7c390c0ccca1,2026-08-12T19:05:56Z,2026-08-12T19:05:56Z,Respiratory Rate,15.5,count/min,马林康的Apple Watch
+7a51df20-a3ae-43c5-814a-38ec2af36a1b,2026-08-12T19:08:56Z,2026-08-12T19:08:56Z,Respiratory Rate,15.5,count/min,马林康的Apple Watch
+20a70832-6957-44ef-bb30-ea1355e807c5,2026-08-12T19:11:51Z,2026-08-12T19:11:51Z,Oxygen Saturation,94,%,马林康的Apple Watch
+58ca7e9e-1679-461e-a066-235efafe16a3,2026-08-12T19:28:24Z,2026-08-12T19:28:24Z,Respiratory Rate,14.5,count/min,马林康的Apple Watch
+28a87666-0565-414e-9b6f-0d5680841197,2026-08-12T19:35:54Z,2026-08-12T19:35:54Z,Respiratory Rate,15,count/min,马林康的Apple Watch
+f51c8480-023a-43df-a371-eefd2169f80a,2026-08-12T19:43:23Z,2026-08-12T19:43:23Z,Respiratory Rate,14.5,count/min,马林康的Apple Watch
+72108754-ac4f-45e9-9e7d-761a7fef8663,2026-08-12T19:56:52Z,2026-08-12T19:56:52Z,Respiratory Rate,14,count/min,马林康的Apple Watch
+f7480c4f-69b9-4b31-88b4-d452e620c96b,2026-08-12T19:56:59Z,2026-08-12T19:56:59Z,Oxygen Saturation,95,%,马林康的Apple Watch
+b927bcaf-b696-4079-b7c7-8f0a7852f189,2026-08-12T19:59:22Z,2026-08-12T19:59:22Z,Respiratory Rate,15,count/min,马林康的Apple Watch
+9ad928c1-a1a4-48f5-bd3c-73302271155e,2026-08-12T20:17:51Z,2026-08-12T20:17:51Z,Respiratory Rate,15,count/min,马林康的Apple Watch
+3512fd11-ec6d-4c21-832b-e99f3eb163fc,2026-08-12T20:20:51Z,2026-08-12T20:20:51Z,Respiratory Rate,13.5,count/min,马林康的Apple Watch
+3c191e06-20be-4426-96ae-5e3dbdd0841e,2026-08-12T20:35:50Z,2026-08-12T20:35:50Z,Respiratory Rate,14.5,count/min,马林康的Apple Watch
+9953418a-f1f5-4fba-9244-3ed41107378c,2026-08-12T20:44:49Z,2026-08-12T20:44:49Z,Respiratory Rate,13.5,count/min,马林康的Apple Watch
+0483d77d-e5ef-4b19-8f9c-3bda40b320bc,2026-08-12T20:46:30Z,2026-08-12T20:47:29Z,Heart Rate Variability SDNN,59.521386,ms,马林康的Apple Watch
+7a5d7cfe-ff21-42dc-beba-edcedd257131,2026-08-12T20:51:49Z,2026-08-12T20:51:49Z,Respiratory Rate,16,count/min,马林康的Apple Watch
+02520fe9-cbac-43d9-a464-ae0301fc3513,2026-08-12T20:56:18Z,2026-08-12T20:56:18Z,Oxygen Saturation,96,%,马林康的Apple Watch
+cf53d33b-26d4-4bf8-aea2-89d8d724b5f1,2026-08-12T21:07:48Z,2026-08-12T21:07:48Z,Respiratory Rate,15,count/min,马林康的Apple Watch
+3598c810-e33f-405d-9555-fb5f17f26aa8,2026-08-12T21:17:17Z,2026-08-12T21:17:17Z,Respiratory Rate,16,count/min,马林康的Apple Watch
+d55b9759-4b14-413e-bf53-05cdb5e695a9,2026-08-12T21:23:17Z,2026-08-12T21:23:17Z,Respiratory Rate,17.5,count/min,马林康的Apple Watch
+fa0255a3-5097-4f9e-b3ed-965d5cdca030,2026-08-12T21:32:08Z,2026-08-12T21:32:08Z,Oxygen Saturation,94,%,马林康的Apple Watch
+c5ab7d3c-c2a7-4db6-9fbd-1c5f166d55d0,2026-08-12T21:33:46Z,2026-08-12T21:33:46Z,Respiratory Rate,14,count/min,马林康的Apple Watch
+d45ff912-2fc8-482e-ba29-95b1f4886de8,2026-08-12T21:47:45Z,2026-08-12T21:47:45Z,Respiratory Rate,11.5,count/min,马林康的Apple Watch
+c8c6c054-a80d-4868-9204-9d90528c63d3,2026-08-12T21:53:15Z,2026-08-12T21:53:15Z,Respiratory Rate,13,count/min,马林康的Apple Watch
+e150ee1a-2f9f-4f55-9852-d899c8644497,2026-08-12T22:00:14Z,2026-08-12T22:00:14Z,Respiratory Rate,13,count/min,马林康的Apple Watch
+cfe457a4-3d13-4f36-acf7-2bccd92f48ae,2026-08-12T22:14:43Z,2026-08-12T22:14:43Z,Respiratory Rate,14,count/min,马林康的Apple Watch
+ffde61fb-4880-44d8-b5af-f8bb241fc8ba,2026-08-12T22:24:42Z,2026-08-12T22:24:42Z,Respiratory Rate,13.5,count/min,马林康的Apple Watch
+e96fd102-7a8b-46fa-ad81-489b3022b278,2026-08-12T22:29:06Z,2026-08-12T22:29:06Z,Oxygen Saturation,98,%,马林康的Apple Watch
+3f4501ed-0642-43e7-ab43-1d5e0f7b7f20,2026-08-12T22:35:42Z,2026-08-12T22:35:42Z,Respiratory Rate,13.5,count/min,马林康的Apple Watch
+46b9abdc-fe2c-47c2-b3bf-4a3c8b2b30eb,2026-08-12T22:46:32Z,2026-08-12T22:47:31Z,Heart Rate Variability SDNN,63.302081,ms,马林康的Apple Watch
+a260bf3f-659c-4113-b953-fd05d3fe040c,2026-08-12T22:48:11Z,2026-08-12T22:48:11Z,Respiratory Rate,12.5,count/min,马林康的Apple Watch
+f9e4464a-cc4b-41d5-aa6f-8cdf65bb7bd9,2026-08-12T22:52:41Z,2026-08-12T22:52:41Z,Respiratory Rate,14.5,count/min,马林康的Apple Watch
+7e93a845-9bd0-44b3-9d24-3e2f740ac337,2026-08-12T22:59:34Z,2026-08-12T22:59:34Z,Oxygen Saturation,93,%,马林康的Apple Watch
+45fb57e5-6447-48d7-bef2-afa6f54baab7,2026-08-12T23:03:10Z,2026-08-12T23:03:10Z,Respiratory Rate,13,count/min,马林康的Apple Watch
+4aaef1ec-b1e5-4f60-bc59-c33fd9395d95,2026-08-12T23:12:39Z,2026-08-12T23:12:39Z,Respiratory Rate,14,count/min,马林康的Apple Watch
+443f9d0a-10f6-40fb-b3e8-ca016434570c,2026-08-12T23:26:38Z,2026-08-12T23:26:38Z,Respiratory Rate,13,count/min,马林康的Apple Watch
+dcc5b809-36d8-4627-b881-3054c6d87124,2026-08-12T23:30:08Z,2026-08-12T23:30:08Z,Respiratory Rate,13.5,count/min,马林康的Apple Watch
+fcae7f43-068f-4e5b-98ee-e3f264ffb4f6,2026-08-12T23:32:17Z,2026-08-12T23:32:17Z,Oxygen Saturation,94,%,马林康的Apple Watch
+748f5d8e-1b01-4388-aa20-9d47243da50d,2026-08-12T23:47:37Z,2026-08-12T23:47:37Z,Respiratory Rate,14,count/min,马林康的Apple Watch
+27aaa56d-b4ae-498b-a779-b806df5ea909,2026-08-12T23:55:36Z,2026-08-12T23:55:36Z,Respiratory Rate,13,count/min,马林康的Apple Watch
+498091e9-f740-4e11-95bc-8c633346b717,2026-08-13T00:00:06Z,2026-08-13T00:00:06Z,Respiratory Rate,14.5,count/min,马林康的Apple Watch
+0577d737-6245-4c99-ae12-b70b314633ea,2026-08-13T00:02:53Z,2026-08-13T00:02:53Z,Oxygen Saturation,96,%,马林康的Apple Watch
+22b78ab6-bf15-48e9-99ac-cc3d5d65a89e,2026-08-13T00:10:36Z,2026-08-13T00:10:36Z,Respiratory Rate,17,count/min,马林康的Apple Watch
+4cda774e-feb6-47d4-a2a7-b8d1a16e7527,2026-08-13T00:28:04Z,2026-08-13T00:28:04Z,Respiratory Rate,13,count/min,马林康的Apple Watch
+5deddb02-3b2e-4b6d-bb7a-d6ba3d2f5925,2026-08-13T00:32:54Z,2026-08-13T00:32:54Z,Oxygen Saturation,96,%,马林康的Apple Watch
+f7cb14bf-f608-44fd-9a72-2ce63c916917,2026-08-13T00:36:04Z,2026-08-13T00:36:04Z,Respiratory Rate,12.5,count/min,马林康的Apple Watch
+73dba6cd-c9af-4084-9304-e17ddb0b1954,2026-08-13T00:46:30Z,2026-08-13T00:47:30Z,Heart Rate Variability SDNN,141.096718,ms,马林康的Apple Watch
+ca2080e8-f211-4a46-b566-2a8580587c80,2026-08-13T00:48:03Z,2026-08-13T00:48:03Z,Respiratory Rate,12,count/min,马林康的Apple Watch
+77935d06-b6a3-4427-ad10-6456416d9dfb,2026-08-13T00:58:02Z,2026-08-13T00:58:02Z,Respiratory Rate,13,count/min,马林康的Apple Watch
+1aef67de-5ce0-4684-be13-66d57a165d9a,2026-08-13T00:59:32Z,2026-08-13T00:59:32Z,Respiratory Rate,12.5,count/min,马林康的Apple Watch
+4a5365ae-5368-4c8a-b9d3-46e3df13b5e6,2026-08-13T01:07:42Z,2026-08-13T01:07:42Z,Oxygen Saturation,98,%,马林康的Apple Watch
+9793d83a-0c47-4a81-9e0e-fed8d8f80e3d,2026-08-13T01:11:01Z,2026-08-13T01:11:01Z,Respiratory Rate,15,count/min,马林康的Apple Watch
+45fe2ca7-c2e3-419c-b6fa-b28284bf4e04,2026-08-13T03:46:09Z,2026-08-13T03:47:08Z,Heart Rate Variability SDNN,38.25795,ms,马林康的Apple Watch
+6724e3d1-8467-45ee-ac86-467bfe527c1b,2026-08-13T04:53:11Z,2026-08-13T04:54:11Z,Heart Rate Variability SDNN,53.677277,ms,马林康的Apple Watch
+4aa4ae87-fc96-4d14-af90-0d5cb2d7d114,2026-08-13T07:20:15Z,2026-08-13T07:21:15Z,Heart Rate Variability SDNN,60.605854,ms,马林康的Apple Watch
