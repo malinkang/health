@@ -1,0 +1,64 @@
+name: Sync water data to Keep
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'nutrition/**'
+      - 'scripts/sync_water_to_keep.py'
+      - '.github/workflows/sync-water-to-keep.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Compare only; do not write to Keep or commit sync state
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: hadge-keep-water
+  cancel-in-progress: false
+jobs:
+  test-and-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Sync water to Keep
+        env:
+          KEEP_TOKEN: ${{ secrets.KEEP_TOKEN }}
+          KEEP_MOBILE: ${{ secrets.KEEP_MOBILE }}
+          KEEP_PASSWORD: ${{ secrets.KEEP_PASSWORD }}
+          KEEP_COUNTRY_CODE: ${{ secrets.KEEP_COUNTRY_CODE }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=()
+          if [[ "$DRY_RUN" == "true" ]]; then
+            args+=(--dry-run)
+          fi
+          python scripts/sync_water_to_keep.py "${args[@]}"
+      - name: Commit and push sync state
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          if [[ -z "$(git status --porcelain -- .sync-state/keep-water.json)" ]]; then
+            echo "No new water records synced; state file unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .sync-state/keep-water.json
+          git commit -m "chore: update Keep water sync state [skip ci]"
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+          exit 1
