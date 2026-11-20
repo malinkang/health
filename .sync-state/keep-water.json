@@ -11,6 +11,16 @@
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:03Z"
     },
+    "02d53b6c-fc1c-4717-95b6-c8224a8f0b3a": {
+      "keep_id": "6afff083be4b06000151abb9",
+      "drinking_time_ms": 1793162954000,
+      "local_date": "2026-10-28",
+      "start_date": "2026-10-28T04:49:14Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:27Z"
+    },
     "0acdfb9f-4e8a-4dc5-b3a9-12472e91d38a": {
       "keep_id": "6afeabc6992cde0001a17a1d",
       "drinking_time_ms": 1767334814000,
@@ -31,6 +41,26 @@
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:19Z"
     },
+    "1d40d360-eba1-48fb-8fc9-a8a93e1b9e81": {
+      "keep_id": "6afff08dd6e19f0001b58b84",
+      "drinking_time_ms": 1793853367000,
+      "local_date": "2026-11-05",
+      "start_date": "2026-11-05T04:36:07Z",
+      "water_ml": 550,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:37Z"
+    },
+    "2ab0d6ec-64d8-427f-95f4-f1831e0ffe79": {
+      "keep_id": "6afff0941f2fd50001033bf1",
+      "drinking_time_ms": 1795083474000,
+      "local_date": "2026-11-19",
+      "start_date": "2026-11-19T10:17:54Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:44Z"
+    },
     "2ce7e833-ed85-4000-aac4-e172176593f9": {
       "keep_id": "6afeabde719c65000161835c",
       "drinking_time_ms": 1783395142000,
@@ -40,6 +70,46 @@
       "source": "WaterMinder",
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:18Z"
+    },
+    "2d1924dd-d6af-41b4-aaee-c59bab6e05e1": {
+      "keep_id": "6afff091719c650001651011",
+      "drinking_time_ms": 1795069559000,
+      "local_date": "2026-11-19",
+      "start_date": "2026-11-19T06:25:59Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:41Z"
+    },
+    "311589a3-cdd1-4711-974a-dfa6e380324f": {
+      "keep_id": "6afff088815387000133ebac",
+      "drinking_time_ms": 1793261220000,
+      "local_date": "2026-10-29",
+      "start_date": "2026-10-29T08:07:00Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:32Z"
+    },
+    "36113ddb-e81c-426c-bd0d-cc2e45f0e4cd": {
+      "keep_id": "6afff087c048610001cbbca0",
+      "drinking_time_ms": 1793248752000,
+      "local_date": "2026-10-29",
+      "start_date": "2026-10-29T04:39:12Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:31Z"
+    },
+    "3af02e4b-3a0a-4d6c-944d-287312968fcf": {
+      "keep_id": "6afff0961f2fd50001033bfc",
+      "drinking_time_ms": 1795138200000,
+      "local_date": "2026-11-20",
+      "start_date": "2026-11-20T01:30:00Z",
+      "water_ml": 800,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:46Z"
     },
     "3d13e744-6aaf-4ccc-8259-8d6df0a8759e": {
       "keep_id": "6afeabda992cde0001a17a3e",
@@ -61,6 +131,16 @@
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:08Z"
     },
+    "47b1b6d7-99b1-4dc4-960d-5a44274a954a": {
+      "keep_id": "6afff092be4b06000151abd4",
+      "drinking_time_ms": 1795073109000,
+      "local_date": "2026-11-19",
+      "start_date": "2026-11-19T07:25:09Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:42Z"
+    },
     "49a19ce0-3200-409e-9e16-6a0ba3f3ea3a": {
       "keep_id": "6afeabc7992cde0001a17a24",
       "drinking_time_ms": 1775008540000,
@@ -70,6 +150,26 @@
       "source": "WaterMinder",
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:56:55Z"
+    },
+    "57048079-ff81-4e76-9ed5-6eaafab38177": {
+      "keep_id": "6afff093cc794100011f2d11",
+      "drinking_time_ms": 1795077300000,
+      "local_date": "2026-11-19",
+      "start_date": "2026-11-19T08:35:00Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:43Z"
+    },
+    "5e4c9b76-4bd4-49d0-9499-9dcd6942dbe6": {
+      "keep_id": "6afff082c62c980001596ded",
+      "drinking_time_ms": 1793158100000,
+      "local_date": "2026-10-28",
+      "start_date": "2026-10-28T03:28:20Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:26Z"
     },
     "62e8948c-6619-45d3-b951-92809950510c": {
       "keep_id": "6afeabdc954e3200013187e7",
@@ -91,6 +191,26 @@
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:56:57Z"
     },
+    "6a0004ac-4f04-4e07-aa98-3f619c656529": {
+      "keep_id": "6afff08f464a8e0001a5a942",
+      "drinking_time_ms": 1795061458000,
+      "local_date": "2026-11-19",
+      "start_date": "2026-11-19T04:10:58Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:40Z"
+    },
+    "6d8a0287-e135-490b-b1f8-8735365452d9": {
+      "keep_id": "6afff07ec50d3a00011b4a30",
+      "drinking_time_ms": 1789954521000,
+      "local_date": "2026-09-21",
+      "start_date": "2026-09-21T01:35:21Z",
+      "water_ml": 250,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:23Z"
+    },
     "7889cbe9-68fd-4098-9e9a-7825582bfd48": {
       "keep_id": "6afeabd9c50d3a000117c041",
       "drinking_time_ms": 1782440182000,
@@ -101,6 +221,26 @@
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:13Z"
     },
+    "79e256bf-b394-4e14-ad10-c6203e5face0": {
+      "keep_id": "6afff081c048610001cbbc99",
+      "drinking_time_ms": 1793157929000,
+      "local_date": "2026-10-28",
+      "start_date": "2026-10-28T03:25:29Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:25Z"
+    },
+    "84ef299e-406f-4b81-a176-4fd64215187a": {
+      "keep_id": "6afff097954e32000135174a",
+      "drinking_time_ms": 1795140656000,
+      "local_date": "2026-11-20",
+      "start_date": "2026-11-20T02:10:56Z",
+      "water_ml": 300,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:47Z"
+    },
     "883a2536-88cf-4259-9204-cb2a22961dd6": {
       "keep_id": "6afeabd2cc794100011ba05e",
       "drinking_time_ms": 1782360032000,
@@ -110,6 +250,26 @@
       "source": "WaterMinder",
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:06Z"
+    },
+    "8a8d2beb-dd23-4c5c-8e4c-5a2ff5851acf": {
+      "keep_id": "6afff084954e32000135172d",
+      "drinking_time_ms": 1793236946000,
+      "local_date": "2026-10-29",
+      "start_date": "2026-10-29T01:22:26Z",
+      "water_ml": 550,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:29Z"
+    },
+    "8a98def0-83a3-4057-9bf0-8b645ff0ef78": {
+      "keep_id": "6afff08ebe4b06000151abc9",
+      "drinking_time_ms": 1795053461000,
+      "local_date": "2026-11-19",
+      "start_date": "2026-11-19T01:57:41Z",
+      "water_ml": 800,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:38Z"
     },
     "a41337d9-9921-45e1-9d28-c4464330171c": {
       "keep_id": "6afeabc8d6e19f0001b20053",
@@ -151,6 +311,16 @@
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:00Z"
     },
+    "b66ac04b-1603-45f2-8608-a8a625360dd9": {
+      "keep_id": "6afff089464a8e0001a5a92f",
+      "drinking_time_ms": 1793267369000,
+      "local_date": "2026-10-29",
+      "start_date": "2026-10-29T09:49:29Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:33Z"
+    },
     "b9c819e5-6f94-492b-ba37-9370334b3fcd": {
       "keep_id": "6afeabd7c62c98000155e2dd",
       "drinking_time_ms": 1782383746000,
@@ -161,6 +331,16 @@
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:11Z"
     },
+    "bb7deea2-0880-425d-939e-bd1f3b000c9d": {
+      "keep_id": "6afff08cc048610001cbbcab",
+      "drinking_time_ms": 1793853355000,
+      "local_date": "2026-11-05",
+      "start_date": "2026-11-05T04:35:55Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:36Z"
+    },
     "c0eea001-84cb-46ca-9b37-dbc8accea81c": {
       "keep_id": "6afeabcd1f2fd50001ffb078",
       "drinking_time_ms": 1777273741000,
@@ -170,6 +350,16 @@
       "source": "WaterMinder",
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:02Z"
+    },
+    "c58e8cc9-8eb2-4503-9773-7ae2b7d9b0cb": {
+      "keep_id": "6afff080719c650001650ffd",
+      "drinking_time_ms": 1793157901000,
+      "local_date": "2026-10-28",
+      "start_date": "2026-10-28T03:25:01Z",
+      "water_ml": 500,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:24Z"
     },
     "ca7536e5-4856-49b5-988c-c74a61ab4063": {
       "keep_id": "6afeabd83cfc3600016df8a1",
@@ -191,6 +381,16 @@
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:15Z"
     },
+    "dec6739d-9139-4dc4-8dce-09d6a3e37553": {
+      "keep_id": "6afff086c50d3a00011b4a3b",
+      "drinking_time_ms": 1793241601000,
+      "local_date": "2026-10-29",
+      "start_date": "2026-10-29T02:40:01Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:30Z"
+    },
     "e4c7cdda-8f86-4a74-af1e-a4c2ed791fe5": {
       "keep_id": "6afeabd35d53d50001cfe09e",
       "drinking_time_ms": 1782360034000,
@@ -200,6 +400,26 @@
       "source": "WaterMinder",
       "source_file": "nutrition/2026.csv",
       "synced_at": "2026-11-19T07:57:07Z"
+    },
+    "eb12b7fd-ed18-4815-8be0-575ccddd055e": {
+      "keep_id": "6afff07d1f2fd50001033bd1",
+      "drinking_time_ms": 1789954335000,
+      "local_date": "2026-09-21",
+      "start_date": "2026-09-21T01:32:15Z",
+      "water_ml": 555,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:21Z"
+    },
+    "f224a89c-9777-4313-804a-590fb26c5469": {
+      "keep_id": "6afff08b954e32000135173a",
+      "drinking_time_ms": 1793268133000,
+      "local_date": "2026-10-29",
+      "start_date": "2026-10-29T10:02:13Z",
+      "water_ml": 350,
+      "source": "WaterMinder",
+      "source_file": "nutrition/2026.csv",
+      "synced_at": "2026-11-20T07:02:35Z"
     },
     "f413abc2-4164-436f-88f7-09678704c850": {
       "keep_id": "6afeabcf3cfc3600016df88e",
