@@ -1,0 +1,59 @@
+name: Sync Apple Fitness rings to Notion Keep
+
+on:
+  schedule:
+    # GitHub cron uses UTC. Keep this after the other Health sync jobs.
+    - cron: '0 3 * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'activity/**'
+      - 'scripts/sync_to_notion.py'
+      - 'tests/test_sync_to_notion.py'
+      - '.github/workflows/sync-notion-rings.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Compare only; do not write Notion
+        type: boolean
+        default: false
+      full_sync:
+        description: Compare every closed ring day with Notion
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hadge-notion-rings
+  cancel-in-progress: false
+
+jobs:
+  test-and-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Sync fully closed Apple Fitness rings
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_ROOT_PAGE_ID: ${{ secrets.NOTION_ROOT_PAGE_ID }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          FULL_SYNC: ${{ inputs.full_sync }}
+        run: |
+          test -n "$NOTION_TOKEN"
+          test -n "$NOTION_ROOT_PAGE_ID"
+          args=(--rings-only)
+          if [[ "$DRY_RUN" == "true" ]]; then args+=(--dry-run); fi
+          if [[ "$FULL_SYNC" == "true" ]]; then args+=(--full); fi
+          python scripts/sync_to_notion.py "${args[@]}"

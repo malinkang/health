@@ -23,6 +23,16 @@ DATABASE_TITLES = {
     "heart-rate": "心率", "sleep": "睡眠", "sleep-stages": "睡眠分段",
     "mindfulness": "正念", "blood-pressure": "血压",
 }
+RING_DATABASE_TITLE = "Apple 活动圆环"
+RING_FIELD_MAP = {
+    "Move Actual": "活动热量",
+    "Move Goal": "活动热量目标",
+    "Exercise Actual": "锻炼分钟",
+    "Exercise Goal": "锻炼目标",
+    "Stand Actual": "站立小时",
+    "Stand Goal": "站立目标",
+}
+RING_SOURCE = "Apple Health / Hadge"
 SLEEP_STAGE_DATABASE_TITLES = ("睡眠分段", "睡眠阶段", "睡眠分期", "Sleep Stage", "Sleep Stages")
 ASLEEP_TYPES = {"Asleep", "Asleep Unspecified", "Core", "Deep", "REM"}
 SLEEP_STAGE_NAMES = {
@@ -335,6 +345,57 @@ def load_records(root: Path) -> dict[str, dict[str, Record]]:
         result[module] = _aggregate_daily(module, result[module])
     result["sleep-stages"] = sleep_stages
     return result
+
+def ring_schema() -> dict[str, dict]:
+    return {
+        "标题": {"title": {}},
+        "日期": {"date": {}},
+        "来源": {"rich_text": {}},
+        "活动热量": {"number": {"format": "number"}},
+        "活动热量目标": {"number": {"format": "number"}},
+        "锻炼分钟": {"number": {"format": "number"}},
+        "锻炼目标": {"number": {"format": "number"}},
+        "站立小时": {"number": {"format": "number"}},
+        "站立目标": {"number": {"format": "number"}},
+    }
+
+def load_ring_records(root: Path) -> list[Record]:
+    """Load only fully closed Apple Fitness days, sorted oldest to newest."""
+    records: dict[str, Record] = {}
+    required = {"Date", *RING_FIELD_MAP}
+    for path, line, row in _read_files(root, "activity"):
+        key = (row.get("Date") or "").strip()
+        if not key:
+            continue
+        try:
+            normalized_date = datetime.strptime(key, "%Y-%m-%d").date().isoformat()
+        except ValueError as exc:
+            raise ValueError(f"Invalid activity date {key!r} at {path}:{line}") from exc
+        missing = sorted(required - {name for name, value in row.items() if name and value is not None})
+        if missing:
+            raise ValueError(f"Missing activity columns at {path}:{line}: {', '.join(missing)}")
+
+        values: dict[str, Any] = {}
+        for source_name, target_name in RING_FIELD_MAP.items():
+            value = scalar(row.get(source_name))
+            if not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+                raise ValueError(
+                    f"Invalid {source_name} value {row.get(source_name)!r} at {path}:{line}"
+                )
+            values[target_name] = float(value)
+        if not all(
+            values[RING_FIELD_MAP[f"{ring} Actual"]]
+            >= values[RING_FIELD_MAP[f"{ring} Goal"]]
+            for ring in ("Move", "Exercise", "Stand")
+        ):
+            continue
+        values["来源"] = RING_SOURCE
+        record = Record("rings", normalized_date, tuple(sorted(values.items())))
+        old = records.get(normalized_date)
+        if old and old.values != record.values:
+            raise ValueError(f"Conflicting activity ring key {normalized_date} at {path}:{line}")
+        records[normalized_date] = record
+    return [records[key] for key in sorted(records)]
 
 class NotionClient:
     def __init__(self, token: str, sleep: Callable[[float], None] = time.sleep, opener=urllib.request.urlopen, min_interval: float = 0.0):
@@ -710,6 +771,203 @@ def ensure_database(client: NotionClient, root: str, module: str, records: dict[
         else: existing = {**existing, **{n: {"type": next(iter(s))} for n, s in missing.items()}}
     return database_id, existing
 
+def ensure_ring_database(
+    client: NotionClient,
+    root: str,
+    found: dict[str, str],
+    dry: bool,
+) -> tuple[str | None, dict[str, dict], str]:
+    desired = ring_schema()
+    database_id = found.get(RING_DATABASE_TITLE)
+    if not database_id:
+        if dry:
+            return None, {name: {"type": next(iter(spec)), **spec} for name, spec in desired.items()}, "标题"
+        created = client.request(
+            "POST",
+            "/databases",
+            {
+                "parent": {"type": "page_id", "page_id": root},
+                "title": [{"text": {"content": RING_DATABASE_TITLE}}],
+                "properties": desired,
+            },
+        )
+        database_id = created["id"]
+        found[RING_DATABASE_TITLE] = database_id
+
+    database = client.request("GET", f"/databases/{database_id}")
+    existing = database.get("properties", {})
+    title_name = next(
+        (name for name, prop in existing.items() if prop.get("type") == "title"),
+        "标题",
+    )
+    if title_name != "标题":
+        desired = {
+            (title_name if name == "标题" else name): spec
+            for name, spec in desired.items()
+        }
+
+    for name, spec in desired.items():
+        expected_type = next(iter(spec))
+        if name in existing and existing[name].get("type") != expected_type:
+            raise NotionError(
+                f"Database {RING_DATABASE_TITLE} property {name} has incompatible type"
+            )
+
+    missing = {name: spec for name, spec in desired.items() if name not in existing}
+    if missing:
+        if not dry:
+            database = client.request(
+                "PATCH",
+                f"/databases/{database_id}",
+                {"properties": missing},
+            )
+            returned = database.get("properties", {})
+            existing = {
+                **existing,
+                **{name: {"type": next(iter(spec)), **spec} for name, spec in missing.items()},
+                **returned,
+            }
+        else:
+            existing = {
+                **existing,
+                **{name: {"type": next(iter(spec)), **spec} for name, spec in missing.items()},
+            }
+    return database_id, existing, title_name
+
+def ring_properties(record: Record, schema: dict[str, dict], title_name: str) -> dict[str, dict]:
+    values = record.mapping()
+    props: dict[str, dict] = {title_name: title(record.key)}
+    if schema.get("日期", {}).get("type") == "date":
+        props["日期"] = {"date": {"start": record.key}}
+    for name in (*RING_FIELD_MAP.values(), "来源"):
+        value = values.get(name)
+        if value is None or name not in schema:
+            continue
+        if schema[name].get("type") == "number" and isinstance(value, (int, float)):
+            props[name] = {"number": value}
+        elif schema[name].get("type") == "rich_text":
+            props[name] = rich(value)
+    return props
+
+def query_latest_ring_page(
+    client: NotionClient,
+    database_id: str,
+    schema: dict[str, dict],
+) -> dict | None:
+    sort_property = "日期" if schema.get("日期", {}).get("type") == "date" else "标题"
+    response = client.request(
+        "POST",
+        f"/databases/{database_id}/query",
+        {
+            "page_size": 1,
+            "sorts": [{"property": sort_property, "direction": "descending"}],
+        },
+    )
+    pages = response.get("results", [])
+    return pages[0] if pages else None
+
+def ring_page_date(page: dict, schema: dict[str, dict]) -> str | None:
+    title_name = next(
+        (name for name, prop in schema.items() if prop.get("type") == "title"),
+        "标题",
+    )
+    value = title_text(page.get("properties", {}).get(title_name, {})).strip()
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date().isoformat()
+    except ValueError:
+        date_prop = page.get("properties", {}).get("日期", {}).get("date") or {}
+        candidate = str(date_prop.get("start") or "")[:10]
+        try:
+            return datetime.strptime(candidate, "%Y-%m-%d").date().isoformat()
+        except ValueError:
+            return None
+
+def sync_rings(
+    root: Path,
+    client: NotionClient,
+    notion_root: str,
+    dry: bool = False,
+    full: bool = False,
+) -> dict[str, int]:
+    """Create/reuse the Keep activity database and sync ring rows oldest first."""
+    records = load_ring_records(root)
+    found = find_databases(client, notion_root)
+    database_id, schema, title_name = ensure_ring_database(
+        client, notion_root, found, dry
+    )
+    counts = {"created": 0, "updated": 0, "skipped": 0}
+    if not records:
+        print("No activity ring records found", flush=True)
+        return counts
+    if not database_id:
+        counts["created"] = len(records)
+        print(
+            f"Dry run: would create {RING_DATABASE_TITLE} with {len(records)} ring records",
+            flush=True,
+        )
+        return counts
+
+    existing_by_date: dict[str, dict] = {}
+    latest_key: str | None = None
+    if full:
+        pages = client.query(database_id)
+        for page in pages:
+            key = ring_page_date(page, schema)
+            if not key:
+                continue
+            if key in existing_by_date and existing_by_date[key]["id"] != page["id"]:
+                raise ValueError(f"Conflicting Notion activity ring key {key}")
+            existing_by_date[key] = page
+        selected = records
+    else:
+        latest_page = query_latest_ring_page(client, database_id, schema)
+        if latest_page:
+            latest_key = ring_page_date(latest_page, schema)
+            if not latest_key:
+                raise NotionError(
+                    f"Latest {RING_DATABASE_TITLE} page has no valid date"
+                )
+            existing_by_date[latest_key] = latest_page
+            selected = [record for record in records if record.key >= latest_key]
+        else:
+            selected = records
+
+    print(
+        "Syncing Apple Fitness rings "
+        f"{'full' if full else 'incremental'}: {len(selected)} records"
+        + (f" from {selected[0].key}" if selected else "")
+        + (f" to {selected[-1].key}" if selected else ""),
+        flush=True,
+    )
+    for index, record in enumerate(selected, 1):
+        props = ring_properties(record, schema, title_name)
+        old = existing_by_date.get(record.key)
+        if old is None:
+            counts["created"] += 1
+            if not dry:
+                client.request(
+                    "POST",
+                    "/pages",
+                    {"parent": {"database_id": database_id}, "properties": props},
+                )
+        elif mismatches := mismatched_properties(old, props):
+            counts["updated"] += 1
+            if not dry:
+                client.request(
+                    "PATCH",
+                    f"/pages/{old['id']}",
+                    {"properties": props},
+                )
+        else:
+            counts["skipped"] += 1
+        if index % 100 == 0 or index == len(selected):
+            print(
+                f"Rings progress {index}/{len(selected)} through {record.key}: "
+                f"{json.dumps(counts)}",
+                flush=True,
+            )
+    return counts
+
 def sync(
     root: Path,
     client: NotionClient,
@@ -821,11 +1079,21 @@ def sync(
     return counts
 
 def main() -> int:
-    parser = argparse.ArgumentParser(); parser.add_argument("--repo", type=Path, default=Path(__file__).parents[1]); parser.add_argument("--dry-run", action="store_true"); parser.add_argument("--modules", default="")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--repo", type=Path, default=Path(__file__).parents[1])
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--modules", default="")
+    parser.add_argument("--rings-only", action="store_true")
+    parser.add_argument("--full", action="store_true")
     args = parser.parse_args(); token = os.environ.get("NOTION_TOKEN"); root = os.environ.get("NOTION_ROOT_PAGE_ID")
     if not token or not root: parser.error("NOTION_TOKEN and NOTION_ROOT_PAGE_ID are required")
-    selected = {value.strip() for value in args.modules.split(",") if value.strip()} or None
-    print(json.dumps(sync(args.repo, NotionClient(token, min_interval=0.34), root, args.dry_run, selected), ensure_ascii=False))
+    client = NotionClient(token, min_interval=0.34)
+    if args.rings_only:
+        result = sync_rings(args.repo, client, root, args.dry_run, args.full)
+    else:
+        selected = {value.strip() for value in args.modules.split(",") if value.strip()} or None
+        result = sync(args.repo, client, root, args.dry_run, selected)
+    print(json.dumps(result, ensure_ascii=False))
     return 0
 
 if __name__ == "__main__": raise SystemExit(main())

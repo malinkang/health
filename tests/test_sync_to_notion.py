@@ -1,5 +1,6 @@
-import importlib.util, io, sys, unittest, urllib.error
+import importlib.util, io, sys, tempfile, unittest, urllib.error
 from pathlib import Path
+from unittest import mock
 
 P = Path(__file__).parents[1] / "scripts/sync_to_notion.py"
 S = importlib.util.spec_from_file_location("sync_to_notion", P); sync = importlib.util.module_from_spec(S); sys.modules[S.name] = sync; S.loader.exec_module(sync)
@@ -315,5 +316,135 @@ class Tests(unittest.TestCase):
         sync.ensure_database(Client(), "root", "workouts", {"u1": record}, {"运动": "db"}, False)
         patches = [payload for method, _, payload in calls if method == "PATCH"]
         self.assertNotIn("Name", patches[0]["properties"])
+
+    def test_activity_rings_include_only_days_when_all_three_rings_closed(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
+            root = Path(directory)
+            (root / "activity").mkdir()
+            (root / "activity/2026.csv").write_text(
+                "Date,Move Actual,Move Goal,Exercise Actual,Exercise Goal,Stand Actual,Stand Goal\n"
+                "2026-01-03,499,500,30,30,12,12\n"
+                "2026-01-02,600,500,29,30,12,12\n"
+                "2026-01-01,600,500,30,30,11,12\n"
+                "2026-01-04,500,500,30,30,12,12\n",
+                encoding="utf-8",
+            )
+
+            records = sync.load_ring_records(root)
+
+        self.assertEqual([record.key for record in records], ["2026-01-04"])
+        values = records[0].mapping()
+        self.assertEqual(values["活动热量"], 500.0)
+        self.assertEqual(values["锻炼分钟"], 30.0)
+        self.assertEqual(values["站立小时"], 12.0)
+        self.assertEqual(values["来源"], sync.RING_SOURCE)
+
+    def test_ring_database_schema_and_properties_use_dedicated_database(self):
+        self.assertEqual(sync.RING_DATABASE_TITLE, "Apple 活动圆环")
+        record = sync.Record("rings", "2026-01-04", tuple(sorted({
+            "活动热量": 620.0,
+            "活动热量目标": 500.0,
+            "锻炼分钟": 45.0,
+            "锻炼目标": 30.0,
+            "站立小时": 13.0,
+            "站立目标": 12.0,
+            "来源": sync.RING_SOURCE,
+        }.items())))
+        schema = {name: {"type": next(iter(spec)), **spec} for name, spec in sync.ring_schema().items()}
+
+        properties = sync.ring_properties(record, schema, "标题")
+
+        self.assertEqual(sync.title_text(properties["标题"]), "2026-01-04")
+        self.assertEqual(properties["日期"], {"date": {"start": "2026-01-04"}})
+        self.assertEqual(properties["活动热量"], {"number": 620.0})
+        self.assertEqual(properties["站立目标"], {"number": 12.0})
+        self.assertEqual(sync.title_text(properties["来源"]), sync.RING_SOURCE)
+
+    def test_ring_incremental_query_fetches_only_latest_page(self):
+        calls = []
+
+        class Client:
+            def request(self, method, path, payload=None):
+                calls.append((method, path, payload))
+                return {"results": [{"id": "latest"}]}
+
+        schema = {
+            "标题": {"type": "title"},
+            "日期": {"type": "date"},
+        }
+        page = sync.query_latest_ring_page(Client(), "ring-db", schema)
+
+        self.assertEqual(page["id"], "latest")
+        self.assertEqual(calls[0][0], "POST")
+        self.assertEqual(calls[0][1], "/databases/ring-db/query")
+        self.assertEqual(calls[0][2], {
+            "page_size": 1,
+            "sorts": [{"property": "日期", "direction": "descending"}],
+        })
+
+    def test_ring_sync_starts_from_latest_notion_date(self):
+        records = [
+            sync.Record("rings", day, tuple(sorted({
+                "活动热量": 600.0,
+                "活动热量目标": 500.0,
+                "锻炼分钟": 30.0,
+                "锻炼目标": 30.0,
+                "站立小时": 12.0,
+                "站立目标": 12.0,
+                "来源": sync.RING_SOURCE,
+            }.items())))
+            for day in ("2026-01-01", "2026-01-02", "2026-01-03")
+        ]
+        schema = {
+            "标题": {"type": "title"},
+            "日期": {"type": "date"},
+            "来源": {"type": "rich_text"},
+            "活动热量": {"type": "number"},
+            "活动热量目标": {"type": "number"},
+            "锻炼分钟": {"type": "number"},
+            "锻炼目标": {"type": "number"},
+            "站立小时": {"type": "number"},
+            "站立目标": {"type": "number"},
+        }
+        latest_record = records[1]
+        latest_properties = sync.ring_properties(latest_record, schema, "标题")
+        latest_page = {"id": "page-2", "properties": {}}
+        for name, value in latest_properties.items():
+            if "title" in value:
+                latest_page["properties"][name] = {"type": "title", **value}
+            elif "date" in value:
+                latest_page["properties"][name] = {"type": "date", **value}
+            elif "rich_text" in value:
+                latest_page["properties"][name] = {"type": "rich_text", **value}
+            elif "number" in value:
+                latest_page["properties"][name] = {"type": "number", **value}
+
+        class Client:
+            def __init__(self): self.requests = []
+            def request(self, method, path, payload=None):
+                self.requests.append((method, path, payload))
+                return {"id": "created"}
+
+        client = Client()
+        with (
+            mock.patch.object(sync, "load_ring_records", return_value=records),
+            mock.patch.object(sync, "find_databases", return_value={"Apple 活动圆环": "ring-db"}),
+            mock.patch.object(
+                sync,
+                "ensure_ring_database",
+                return_value=("ring-db", schema, "标题"),
+            ),
+            mock.patch.object(
+                sync,
+                "query_latest_ring_page",
+                return_value=latest_page,
+            ),
+        ):
+            counts = sync.sync_rings(Path("/unused"), client, "root", dry=False)
+
+        self.assertEqual(counts, {"created": 1, "updated": 0, "skipped": 1})
+        created_payloads = [payload for method, path, payload in client.requests if path == "/pages"]
+        self.assertEqual(len(created_payloads), 1)
+        self.assertEqual(sync.title_text(created_payloads[0]["properties"]["标题"]), "2026-01-03")
 
 if __name__ == "__main__": unittest.main()
